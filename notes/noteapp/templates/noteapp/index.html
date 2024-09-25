@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Organizer</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+</head>
+
+<body>
+    <main class="container" style="padding: 0;">
+
+        <nav style="margin-bottom: 20px; border-bottom: 2px solid; padding-left: 30px">
+            {% if user.is_authenticated %}
+            <ul>
+                <li><a href="{% url 'noteapp:note' %}" role="button">Add note</a></li>
+                <li><a href="{% url 'noteapp:tags' %}" role="button">Tags</a></li>
+            </ul>
+            <ul>
+                <li>Filter by:</li>
+                {% if filter == "tag" %}
+                    <li><a href="{% url 'noteapp:main'  %}" role="button">Tag: {{ tag }}</a></li>
+                {% else %}
+                    <li><a href="{% url 'noteapp:filter' 'done' %}" role="button"
+                    {% if filter == "done" %}
+                        class="secondary"
+                    {% endif %}
+                    >done</a></li>
+                    <li><a href="{% url 'noteapp:filter' 'notdone' %}" role="button"
+                    {% if filter == "notdone" %}
+                        class="secondary"
+                    {% endif %}
+                    >not done</a></li>
+                    <li><a href="{% url 'noteapp:main' %}" role="button"
+                    {% if filter == "" %}
+                        class="secondary"
+                    {% endif %}
+                    >none</a></li>
+                {% endif %}
+            </ul>
+            <ul>
+                <li>Welcome <b>{{ user.username }}!</b></li>
+                <li><a href="{% url 'users:profile' %}" role="button">Profile</a></li>
+                <li><a href="{% url 'users:logout' %}" role="button">Logout</a></li>
+            </ul>
+            {% else %}
+            <ul>
+                <li><a href="{% url 'users:signup' %}" role="button">Sign Up</a></li>
+                <li><a href="{% url 'users:login' %}" role="button">Login</a></li>
+            </ul>
+            {% endif %}
+        </nav>
+
+        {% if messages %}
+        <div>
+            {% for message in messages %}
+            <div {% if message.tags %} class="alert-{{ message.tags }}" {% endif %}>{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for note in notes %}
+        <ul>
+            <li>
+                {% if not note.done %}
+                <a href="{% url 'noteapp:detail' note.id %}?page={{ page_num }}" role="button" class="outline"> {{ note.name }} </a>
+                <a href="{% url 'noteapp:set_done' note.id %}" role="button">Mark Done</a>
+                {% else %}
+                <a href="{% url 'noteapp:detail' note.id %}?page={{ page_num }}" role="button" class="secondary"><s>{{ note.name }}</s></a>
+                <a href="{% url 'noteapp:set_notdone' note.id %}" role="button">Mark not done</a>
+                {% endif %}
+                <a href="{% url 'noteapp:note_edit' note.id %}" role="button" class="secondary"> Edit note </a>
+                <a href="{% url 'noteapp:delete' note.id %}" role="button" class="contrast"
+                data-target="modal-example" onClick="toggleModal(event)"> Delete note </a>
+            </li>
+        </ul>
+        {% endfor %}
+        <nav style="border-top: 2px solid; justify-content: center;">
+        {% if notes.paginator.num_pages > 1 %}
+        <div  style="padding-top: 20px;">
+            <span>
+                <a role="button" class="secondary"
+                {% if not notes.has_previous %} disabled {% endif %}  
+                href="?page={% if notes.has_previous %}{{ notes.previous_page_number }}{% endif %}  "
+                >Previous</a>
+                <span>
+                Page {{ notes.number }} of {{ notes.paginator.num_pages }}.
+                </span>
+                 <a role="button" class="secondary"
+                 {% if not notes.has_next %} disabled {% endif %}
+                 href="?page={% if notes.has_next %}{{ notes.next_page_number }}{% endif %}  "
+                 >Next</a>
+            </span>
+        </div>
+        {% endif %}
+        </nav>
+<dialog id="modal-example">
+        <article>
+            <a href="#close"
+            aria-label="Close"
+            class="close"
+            data-target="modal-example"
+            onClick="toggleModal(event)">
+            </a>
+            <h3>Confirm your action!</h3>
+            <p>
+            Your action may result in the deletion of records. Are you sure?
+            </p>
+            <footer>
+            <a href="#cancel"
+                role="button"
+                class="secondary"
+                data-target="modal-example"
+                onClick="toggleModal(event)">
+                Cancel
+            </a>
+            <a href="#"
+                role="button"
+                data-target=""
+                onClick="onConfiramtion()">
+                Confirm
+            </a>
+            </footer>
+        </article>
+</dialog>
+    <!-- Modal -->
+    <script src="/static/noteapp/js/modal.js"></script>
+    </main>
+</body>
+
+</html>
